@@ -1,0 +1,15 @@
+Hello,
+<br>
+<br>
+Thank you for registering at {$website_name}. However, before you getting running on the site, you\'ve to confirm your email address. Click <b><a href="{$activation_link}">here</a></b> to confirm your account, or copy the link below directly to confirm your email address.
+<br>
+<br>
+<b>Confirmation link: {$activation_link}</b>
+<br>
+<br>                
+Regards,
+<br>
+{$website_name}
+<br>
+<br>
+<small>If you didn\'t apply for an account, please ignore this email and you won\'t be bugged again.</small>

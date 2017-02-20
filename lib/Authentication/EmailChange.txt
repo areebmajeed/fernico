@@ -1,0 +1,12 @@
+Hello there!
+<br>
+<br>
+It looks like you've added a new email address to your account at the site. Please confirm the change by copying the link below.
+<br>
+<br>
+<b>Confirmation link: {$change_link}</b>
+<br>
+<br>
+Regards,
+<br>
+{$website_name}
