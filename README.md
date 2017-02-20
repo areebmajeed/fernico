@@ -3,14 +3,14 @@
 </p>
 
 ## About Fernico ##
-Just a simple MVC skeleton framework developed with simplicity at the core. Fernico is easy to use, fast to setup and great for small projects. If you're building a massive application, please consider using frameworks such as Laravel, Symphony, Yii or CakePHP.
+Just a simple MVC skeleton framework developed with simplicity at the core. Fernico is easy to use, fast to setup and great for small projects. If you're building a massive application, please consider using frameworks such as Laravel, Symfony, Yii or CakePHP.
 
 ## Features ##
 
 Fernico comes with multiple functions and libraries to save the time. I've listed some of the major functions below.
 
  - Authentication module
- - In-built PHPMailer installation
+ - In-built PHPMailer integration
  - Support for future plugins (due to plugins system)
  - Templating system - Smarty
  - Error reporting and logging
@@ -43,7 +43,100 @@ Fernico comes with multiple functions and libraries to save the time. I've liste
  - `Request::COOKIE('session', $filtered = false)` Returns a COOKIE value set in the headers.
  - `Request::cleanInput($input)` Cleans the input and returns it. Useful to avoid attacks like XSS.
 
-## Constants ##
+## Constants and Variables ##
 
  - `FERNICO` This constant would be useful if someone called the page/file directly or using Fernico.
  - `FERNICO_PATH` Returns the absolute path of the installation. If your installation is at `/var/www/projects/Fernico`, it will return the same throughout the script. Please note that `fernico_getAbsURL()` returns the absolute URL with a trailing slash, this constant doesn't.
+ - `$fernico_db` It is the MySQLi object. Use this to communicate with the database.
+ 
+## Plugins ##
+
+Fernico contains a tiny plugin system. This project comes with a simple plugin to echo a string containing the version number of the installation. It also utilizes the hooking system of the framework.
+
+To include a plugin (called function, internally), you've to update the json file (called functions.json) at functions folder and include the name of the plugin and its entry point.
+
+## Releases and Versions ##
+
+ - master (containing the stable code)
+ - develop
+
+Please commit new code to the **develop** branch.
+
+## Authentication Module ##
+
+I've also created a login system based on Fernico's native Authentication API. It is available for download at this [link](http://areebmajeed.me/assets/downloads/Fernico-login-script.zip).
+
+## Installation ##
+
+It's easy and straightforward to install Fernico.
+
+ 1. Clone the repository or download it.
+ 2. Upload all the files to your web directory (for example, /var/www/).
+ 3. Open config.php and start configuring it.
+ 4. It's ready! Now, access your website, you should see the placeholder page loading.
+ 5. If you're planning to use database too, you also need to create the SQL records at your database by importing the database structure shown below.
+ 5. If you aren't using Apache as your web-server, some extra configuration may be needed from server-side. Proceed to **nginx configuration** section.
+
+## Database Structure ##
+
+    CREATE TABLE IF NOT EXISTS `email_updates` (
+      `id` bigint(20) NOT NULL AUTO_INCREMENT,
+      `user_id` bigint(20) NOT NULL,
+      `email` varchar(255) NOT NULL,
+      `confirm_code` varchar(255) NOT NULL,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+    
+    CREATE TABLE IF NOT EXISTS `error_log` (
+      `id` bigint(20) NOT NULL AUTO_INCREMENT,
+      `message` text NOT NULL,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+    
+    CREATE TABLE IF NOT EXISTS `users` (
+      `user_id` bigint(11) NOT NULL AUTO_INCREMENT,
+      `user_name` varchar(32) NOT NULL,
+      `user_email` varchar(64) NOT NULL,
+      `password_hash` varchar(255) NOT NULL,
+      `user_verified` tinyint(4) NOT NULL DEFAULT '0',
+      `activation_hash` varchar(255) DEFAULT NULL,
+      `reset_hash` varchar(255) DEFAULT NULL,
+      `rememberme_token` varchar(255) DEFAULT NULL,
+      `failed_logins` mediumint(9) NOT NULL,
+      `last_failed_login` bigint(20) NOT NULL,
+      `last_logged_in` datetime NOT NULL,
+      `registration_datetime` datetime NOT NULL,
+      `registration_ip` varchar(255) NOT NULL,
+      `admin_powers` int(11) NOT NULL DEFAULT '0',
+      PRIMARY KEY (`user_id`),
+      UNIQUE KEY `user_name` (`user_name`),
+      UNIQUE KEY `user_name_2` (`user_name`)
+    ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+
+## nginx Configuration ##
+
+    server {
+    
+        listen 80;
+        server_name example.com;
+        root /var/www/public_html/resources;
+        index index.php;
+    
+        location ~ /(config|controllers|functions|lib|models|views) {
+          deny all;
+          return 404;
+        }
+    
+        location / {
+            try_files $uri /index.php?param=$uri&$args;
+        }
+    	
+        location ~ \.php$ {
+            try_files $uri  = 401;
+            include /etc/nginx/fastcgi_params;
+            fastcgi_pass unix:/var/run/php-fastcgi/php-fastcgi.socket;
+            fastcgi_index index.php;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        }
+    
+    }
