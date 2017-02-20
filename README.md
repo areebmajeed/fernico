@@ -158,6 +158,8 @@ If you have a critical security bug, instead of creating a GitHub issue, please 
  - Areeb Majeed - [http://areebmajeed.me/](http://areebmajeed.me/)
  - Other contributors - https://github.com/areebmajeed/fernico/graphs/contributors
 
+If you would like to get your name listed here, hit me an email at **hello at volcrado dot com**.
+
 ## License ##
 
 Fernico is a open-sourced framework released under the **[MIT License](https://opensource.org/licenses/MIT)**.
