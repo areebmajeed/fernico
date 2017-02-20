@@ -140,3 +140,24 @@ It's easy and straightforward to install Fernico.
         }
     
     }
+
+## Contributions and Development ##
+
+Currently, I am working on the framework in my leisure. I'd be happy if you help to grow this framework. Feel free to contribute to the framework.
+
+Please contribute to the **develop** branch.
+
+## Bugs and Suggestions ##
+
+If you've encountered any bug, please feel free to create a GitHub issue. We're also open to suggestions. Look no further and create a GitHub issue if you've great ideas for the project.
+
+If you have a critical security bug, instead of creating a GitHub issue, please email me at **hello at volcrado dot com**.
+
+## Contributors ##
+
+ - Areeb Majeed - [http://areebmajeed.me/](http://areebmajeed.me/)
+ - Other contributors - https://github.com/areebmajeed/fernico/graphs/contributors
+
+## License ##
+
+Fernico is a open-sourced framework released under the **[MIT License](https://opensource.org/licenses/MIT)**.
