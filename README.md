@@ -34,3 +34,16 @@ Fernico comes with multiple functions and libraries to save the time. I've liste
 13. `fernico_getIPAddress()` Returns the IP address of the visitor.
 14. `fernico_validateIPAddress($ip_address)` Validates the IP address, and returns a boolean.
 15. `fernico_countryCode()` Returns the ISO country code (for example, GB for United Kingdom). Please remember that this function uses multiple RESTful API to get the data.
+
+## Useful Classes and Methods ##
+
+ - `Config::fetch('configParameterName')` Static class to obtain the value of a configuration setting set in config.php file.
+ - `Request::GET('query', $filtered = false)` Returns a GET value set in the URL. 
+ -  `Request::POST('data', $filtered = false)` Returns a POST value set in the page. 
+ - `Request::COOKIE('session', $filtered = false)` Returns a COOKIE value set in the headers.
+ - `Request::cleanInput($input)` Cleans the input and returns it. Useful to avoid attacks like XSS.
+
+## Constants ##
+
+ - `FERNICO` This constant would be useful if someone called the page/file directly or using Fernico.
+ - `FERNICO_PATH` Returns the absolute path of the installation. If your installation is at `/var/www/projects/Fernico`, it will return the same throughout the script. Please note that `fernico_getAbsURL()` returns the absolute URL with a trailing slash, this constant doesn't.
