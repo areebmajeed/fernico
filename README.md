@@ -3,7 +3,7 @@
 </p>
 
 ## About Fernico ##
-Just a simple MVC skeleton framework developed with simplicity at the core. Fernico is easy to use, fast to setup and great for small projects. If you're building a massive application, please consider using frameworks such as Laravel, Symfony, Yii or CakePHP.
+Just a simple MVC framework developed with simplicity at the core. Fernico is easy to use, fast to setup and great for small projects. If you're building a massive application, please consider using frameworks such as Laravel, Symfony, Yii or CakePHP.
 
 ## Features ##
 
