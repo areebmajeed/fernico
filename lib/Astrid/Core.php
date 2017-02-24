@@ -275,6 +275,12 @@ function fernico_getAbsURL() {
         $delimiter = Request::GET('param', true);
 
     }
+    
+    if ($delimiter == "/") {
+
+        $delimiter = Request::GET('param', true);
+
+    }
 
     $url = explode($delimiter, $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
     return $url[0];
