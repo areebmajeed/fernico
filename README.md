@@ -34,6 +34,7 @@ Fernico comes with multiple functions and libraries to save the time. I've liste
 13. `fernico_getIPAddress()` Returns the IP address of the visitor.
 14. `fernico_validateIPAddress($ip_address)` Validates the IP address, and returns a boolean.
 15. `fernico_countryCode()` Returns the ISO country code (for example, GB for United Kingdom). Please remember that this function uses multiple RESTful API to get the data.
+16. `fernico_callController($name, $method, $parameters)` Initializes a class, calls a method with parameters (in an array).
 
 ## Useful Classes and Methods ##
 
