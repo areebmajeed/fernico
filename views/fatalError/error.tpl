@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="robots" content="noindex">
-    <link href="{fernico_getAbsURL()}resources/fatalError/style.css" rel="stylesheet" type="text/css">
+    <link href="{fernico_getAbsURL()}fatalError/style.css" rel="stylesheet" type="text/css">
     <title>Internal Error Occurred</title>
 </head>
 <body>
