@@ -176,9 +176,27 @@ function fernico_criticalErrorHandler() {
         $err_text = "A critical error occurred in the application. Terminating.";
 
         fernico_reportError($error_msg);
-        fernico_loadComponent('fatalError', 'error.tpl', array('message' => $err_text, 'error_message' => $error_msg));
+        fernico_callController('fatalError', 'errorHandler', array('message' => $err_text, 'error_message' => $error_msg));
         fernico_destroy();
 
+    }
+
+}
+
+/*
+ * This function allows you to call a controller with a method and parameters.
+ */
+
+function fernico_callController($name, $method, $parameters) {
+
+    $name = $name . "Controller";
+    require(FERNICO_PATH . '/controllers/' . $name . '.php');
+    $controller = new $this->$name();
+
+    if (!empty($this->parameters)) {
+        call_user_func_array(array($controller, $method), $parameters);
+    } else {
+        $controller->{$method}();
     }
 
 }
@@ -275,19 +293,13 @@ function fernico_getAbsURL() {
         $delimiter = Request::GET('param', true);
 
     }
-	
-	if ($delimiter == "/") {
-		
-		$delimiter = "";
-		
-	}
-	
-	if(substr($delimiter, 0, 1) == "/") {	
-	
-		$delimiter = substr($delimiter, 1);
-		
-	}
-	
+
+    if ($delimiter == "/") {
+
+        $delimiter = "";
+
+    }
+
     $url = explode($delimiter, $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
     return $url[0];
 
