@@ -191,9 +191,9 @@ function fernico_callController($name, $method, $parameters) {
 
     $name = $name . "Controller";
     require(FERNICO_PATH . '/controllers/' . $name . '.php');
-    $controller = new $this->$name();
+    $controller = new $name();
 
-    if (!empty($this->parameters)) {
+    if (!empty($parameters)) {
         call_user_func_array(array($controller, $method), $parameters);
     } else {
         $controller->{$method}();
