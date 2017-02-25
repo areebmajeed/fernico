@@ -50,7 +50,7 @@ class fernico {
 
         global $fernico_db;
         $fernico_db = new mysqli(Config::fetch('DATABASE_HOST'), Config::fetch('DATABASE_USER'),
-            Config::fetch('DATABASE_PASSWORD'), Config::fetch('DATABASE_name'));
+            Config::fetch('DATABASE_PASSWORD'), Config::fetch('DATABASE_NAME'));
 
         if ($fernico_db->connect_errno) {
             fernico_reportError($fernico_db->connect_errno);
