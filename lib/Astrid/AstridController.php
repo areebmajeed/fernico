@@ -23,8 +23,7 @@ class AstridController extends AstridSession {
 
     public function __construct() {
 
-        // Create the session.
-        parent::__construct();
+        // Just chill. Do nothing.     
 
     }
 
