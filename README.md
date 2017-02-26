@@ -50,6 +50,10 @@ Fernico comes with multiple functions and libraries to save the time. I've liste
  - `FERNICO_PATH` Returns the absolute path of the installation. If your installation is at `/var/www/projects/Fernico`, it will return the same throughout the script. Please note that `fernico_getAbsURL()` returns the absolute URL with a trailing slash, this constant doesn't.
  - `$fernico_db` It is the MySQLi object. Use this to communicate with the database.
  
+## Notes ##
+
+- If you'd like to use hyphen in your URLs, please make sure to name your controller/method/function as `hello__world`, basically replacing the hypen (`-`) with a double underscore (`__`). Your controller file name doesn't need to be changed.
+ 
 ## Plugins ##
 
 Fernico contains a tiny plugin system. This project comes with a simple plugin to echo a string containing the version number of the installation. It also utilizes the hooking system of the framework.

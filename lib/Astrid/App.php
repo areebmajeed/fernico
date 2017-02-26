@@ -30,6 +30,7 @@ class fernico {
     private $parameters = array();
     private $controller_name;
     private $action_name;
+    private $controller_name_parsed;
 
     /*
      * Initializes the system by calling the necessary functions present in this class.
@@ -103,7 +104,9 @@ class fernico {
             $this->action_name = Config::fetch('DEFAULT_ACTION');
         }
 
+        $this->action_name = str_replace('-','__',$this->action_name);
         $this->controller_name = $this->controller_name . 'Controller';
+        $this->controller_name_parsed = str_replace('-','__',$this->controller_name);
 
     }
 
@@ -120,7 +123,7 @@ class fernico {
         if (file_exists(FERNICO_PATH . '/controllers/' . $this->controller_name . '.php')) {
 
             require(FERNICO_PATH . '/controllers/' . $this->controller_name . '.php');
-            $this->controller = new $this->controller_name();
+            $this->controller = new $this->controller_name_parsed();
 
             if (method_exists($this->controller, $this->action_name)) {
 
