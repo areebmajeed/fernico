@@ -300,8 +300,9 @@ function fernico_getAbsURL() {
 
     }
 
-    $url = explode($delimiter, $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-    return $url[0];
+    $request_uri = explode($delimiter, $_SERVER['REQUEST_URI']);
+    $url = $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . $request_uri[0];
+    return $url;
 
 }
 
