@@ -300,8 +300,23 @@ function fernico_getAbsURL() {
 
     }
 
-    $request_uri = explode($delimiter, $_SERVER['REQUEST_URI']);
-    $url = $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . $request_uri[0];
+    if($delimiter != "") {
+
+        $request_uri = explode($delimiter, $_SERVER['REQUEST_URI']);
+
+    } else {
+
+        $request_uri = array();
+        $request_uri[0] = $_SERVER['REQUEST_URI'];
+
+    }
+
+    if(substr($request_uri[0], -1) == "/") {
+        $request_uri[0][0] = "";
+        $request_uri[0] = trim($request_uri[0]);
+    }
+
+    $url = $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . "/" . $request_uri[0];
     return $url;
 
 }
