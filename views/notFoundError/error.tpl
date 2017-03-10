@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="robots" content="noindex">
-    <link href="{fernico_getAbsURL()}default/css/errorStyle.css" rel="stylesheet" type="text/css">
+    <link href="{fernico_getAbsURL()}notFoundError/style.css" rel="stylesheet" type="text/css">
     <title>Page Not Found</title>
 </head>
 <body>
