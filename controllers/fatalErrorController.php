@@ -17,7 +17,7 @@ if (!defined('FERNICO')) {
 
 class fatalErrorController extends AstridController {
 
-    public function errorHandler() {
+    public function errorHandler($err_text, $error_msg) {
         fernico_loadComponent('fatalError', 'error.tpl', array('message' => $err_text, 'error_message' => $error_msg));
     }
 
