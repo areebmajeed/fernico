@@ -176,7 +176,7 @@ function fernico_criticalErrorHandler() {
         $err_text = "A critical error occurred in the application. Terminating.";
 
         fernico_reportError($error_msg);
-        fernico_callController('fatalError', 'errorHandler', array('message' => $err_text, 'error_message' => $error_msg));
+        fernico_callController('fatalError', 'errorHandler', array($err_text, $error_msg));
         fernico_destroy();
 
     }
