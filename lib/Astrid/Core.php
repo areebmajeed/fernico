@@ -89,7 +89,7 @@ function fernico_post($url, $data = array()) {
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-    curl_setopt($ch, CURLOPT_POST, count($fields));
+    curl_setopt($ch, CURLOPT_POST, count($data));
     curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
     $result = curl_exec($ch);
     curl_close($ch);
