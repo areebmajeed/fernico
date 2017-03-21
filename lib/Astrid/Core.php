@@ -147,6 +147,7 @@ function fernico_loadComponent($template_dir, $template, $options) {
     }
 
     $smarty->setCompileDir(Config::fetch('TEMPLATE_COMPILED_DIR'));
+    $smarty->loadFilter('output', 'trimwhitespace');
     $smarty->display(FERNICO_PATH . '/views/' . $template_dir . '/' . $template);
 
 }
