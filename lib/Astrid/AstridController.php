@@ -43,6 +43,7 @@ class AstridController extends AstridSession {
         }
 
         $smarty->setCompileDir(Config::fetch('TEMPLATE_COMPILED_DIR'));
+        $smarty->loadFilter('output', 'trimwhitespace');
         $smarty->display(FERNICO_PATH . '/views/' . Config::fetch("TEMPLATE_DIR") . '/' . $template);
 
     }
