@@ -317,7 +317,13 @@ function fernico_getAbsURL() {
         $request_uri[0] = trim($request_uri[0]);
     }
 
-    $url = $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . "/" . $request_uri[0];
+    if(isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        $scheme = $_SERVER['HTTP_X_FORWARDED_PROTO'];
+    } else {
+        $scheme = $_SERVER['REQUEST_SCHEME'];
+    }
+
+    $url = $scheme . "://" . $_SERVER['HTTP_HOST'] . "/" . $request_uri[0];
     return $url;
 
 }
