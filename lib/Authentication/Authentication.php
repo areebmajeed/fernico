@@ -33,6 +33,8 @@ class Authentication {
 
     public function __construct() {
 
+        global $fernico_db;
+
         $this->cookie_secret = Config::fetch('COOKIE_SECRET');
         $this->sessionTime = 60 * 60 * 24 * Config::fetch('SESSION_DAYS');
 
@@ -40,7 +42,7 @@ class Authentication {
 
             $cookie = Request::COOKIE('remember_me', true);
 
-            list($user_id, $hash, $token) = explode(":", $cookie);
+            list($user_id, $hash, $token) = explode(":", urldecode($cookie));
 
             $construct = $token . $this->cookie_secret;
             $construct = hash('sha256', $construct);
@@ -49,7 +51,7 @@ class Authentication {
 
                 $stmt = $fernico_db->stmt_init();
                 $stmt->prepare("SELECT COUNT(user_id) as count,user_id,user_name,user_email FROM users WHERE rememberme_token = ? LIMIT 1");
-                $stmt->bind_param("s", $user_name);
+                $stmt->bind_param("s", $token);
                 $stmt->execute();
                 $data = $stmt->get_result();
                 $stmt->close();
@@ -110,7 +112,8 @@ class Authentication {
 
         $_SESSION = array();
         session_destroy();
-        return true;
+
+        return 'SUCCESS';
 
     }
 
@@ -119,6 +122,8 @@ class Authentication {
      */
 
     public function login($user_name, $password) {
+
+        global $fernico_db;
 
         $user_name = Request::cleanInput($user_name);
         $password = Request::cleanInput($password);
@@ -159,26 +164,26 @@ class Authentication {
 
             return "ER_USER_NOT_FOUND";
 
-        } elseif (!password_verify($password, $user['password_hash'])) {
+        } elseif (!password_verify($password, $data['password_hash'])) {
 
             return "ER_PASSWORD_INCORRECT";
 
             $last_failed_login = time();
             $fernico_db->query("UPDATE users SET failed_logins = failed_logins + 1, last_failed_login = {$last_failed_login} WHERE user_id = {$data['user_id']}");
 
-        } elseif ($user['user_verified'] == 0) {
+        } elseif ($data['user_verified'] == 0) {
 
             return "ER_ACCOUNT_NOT_VERIFIED";
 
-        } elseif ($user['failed_logins'] >= 6 && $user['last_failed_login'] > (time() - 900)) {
+        } elseif ($data['failed_logins'] >= 6 && $data['last_failed_login'] > (time() - 900)) {
 
             return "ER_TOO_MANY_ATTEMPTS";
 
         } else {
 
-            $_SESSION['user_id'] = $user['user_id'];
-            $_SESSION['user_name'] = $user['user_name'];
-            $_SESSION['user_email'] = $user['user_email'];
+            $_SESSION['user_id'] = $data['user_id'];
+            $_SESSION['user_name'] = $data['user_name'];
+            $_SESSION['user_email'] = $data['user_email'];
             $_SESSION['user_logged_in'] = 1;
 
             if (Request::POST('remember_me') == null) {
@@ -189,15 +194,15 @@ class Authentication {
 
                 $rememberme_token = hash('sha256', mt_rand());
                 $hash = $rememberme_token . $this->cookie_secret;
-                $token = $user['user_id'] . ":" . hash('sha256', $hash) . ":" . $rememberme_token;
+                $token = $data['user_id'] . ":" . hash('sha256', $hash) . ":" . $rememberme_token;
                 setcookie('remember_me', $token, time() + $this->sessionTime, "/", Config::fetch('COOKIE_DOMAIN'));
 
             }
 
             $datetime = date("Y-m-d H:i:s");
-            $fernico_db->query("UPDATE users SET last_logged_in = '{$datetime}', failed_logins = 0, rememberme_token = {$rememberme_token} WHERE user_id = {$data['user_id']}");
+            $fernico_db->query("UPDATE users SET last_logged_in = '{$datetime}', failed_logins = 0, rememberme_token = '{$rememberme_token}' WHERE user_id = {$data['user_id']}");
 
-            return true;
+            return 'LOGIN_SUCCESS';
 
         }
 
@@ -230,6 +235,8 @@ class Authentication {
      */
 
     public function register($user_name, $user_email, $password, $password_repeat) {
+
+        global $fernico_db;
 
         $user_name = Request::cleanInput($user_name);
         $user_email = Request::cleanInput($user_email);
@@ -298,7 +305,7 @@ class Authentication {
 
         } else {
 
-            if (Config::fetch('EMAIL_CONFIRMATION') == true) {
+            if (Config::fetch('EMAIL_CONFIRMATION') === true) {
 
                 $user_verified = 0;
                 $activation_hash = hash('sha256', mt_rand());
@@ -306,7 +313,7 @@ class Authentication {
                 $subject = "Confirm your email at " . Config::fetch('WEBSITE_NAME');
 
                 $handle = fopen(FERNICO_PATH . '/lib/Authentication/ActivationEmail.txt', "r");
-                $body = fread($handle, filesize(FERNICO_PATH . '/lib/Authentication/ActivationEmail.txt'));
+                $body = stripslashes(fread($handle, filesize(FERNICO_PATH . '/lib/Authentication/ActivationEmail.txt')));
                 fclose($handle);
                 $body = str_replace(array('{$activation_link}', '{$website_name}'),
                     array($activation_link, Config::fetch('WEBSITE_NAME')), $body);
@@ -322,16 +329,24 @@ class Authentication {
 
             $password_hash = password_hash($password, PASSWORD_DEFAULT, array('cost' => 12));
             $registration_datetime = date("Y-m-d H:i:s");
-            $registration_ip = get_IP();
+            $registration_ip = fernico_getIPAddress();
 
             $stmt = $fernico_db->stmt_init();
             $stmt->prepare("INSERT INTO users (user_name,user_email,password_hash,user_verified,activation_hash,registration_datetime,registration_ip) VALUES (?,?,?,?,?,?,?)");
-            $stmt->bind_param("s", "sssisss", $user_name, $user_email, $password_hash, $user_verified, $activation_hash,
+            $stmt->bind_param("sssisss", $user_name, $user_email, $password_hash, $user_verified, $activation_hash,
                 $registration_datetime, $registration_ip);
             $stmt->execute();
             $stmt->close();
 
-            return true;
+            if (Config::fetch('EMAIL_CONFIRMATION') == true) {
+
+                return 'REGISTER_SUCCESS_ACTIVATION_EMAIL_SENT';
+
+            } else {
+
+                return 'REGISTER_SUCCESS_NO_ACTIVATION_EMAIL';
+
+            }
 
         }
 
@@ -358,6 +373,7 @@ class Authentication {
             $mail->IsMail();
         }
 
+        $mail->SetFrom(Config::fetch('NO_REPLY_EMAIL'), Config::fetch('WEBSITE_NAME'));
         $mail->Subject = $subject;
         $mail->SMTPDebug = false;
         $mail->do_debug = 0;
@@ -372,7 +388,9 @@ class Authentication {
      * Enables you to confirm user emails.
      */
 
-    public function confirmEmail($activation_link) {
+    public function confirmEmail($activation_hash) {
+
+        global $fernico_db;
 
         $stmt = $fernico_db->stmt_init();
         $stmt->prepare("SELECT COUNT(user_id) as count, user_id FROM users WHERE activation_hash = ? AND user_verified = 0 LIMIT 1");
@@ -386,11 +404,11 @@ class Authentication {
 
             $fernico_db->query("UPDATE users SET activation_hash = null, user_verified = 1 WHERE user_id = {$confirm_email['user_id']}");
 
-            return true;
+            return 'SUCCESS_EMAIL_CONFIRMED';
 
         } else {
 
-            return false;
+            return 'ER_WRONG_ACTIVATION_LINK';
 
         }
 
@@ -402,11 +420,13 @@ class Authentication {
 
     public function sendPasswordResetEmail($user_name) {
 
+        global $fernico_db;
+
         $user_name = Request::cleanInput($user_name);
 
         $stmt = $fernico_db->stmt_init();
         $stmt->prepare("SELECT COUNT(user_id) as count,user_id,user_email FROM users WHERE user_name = ? LIMIT 1");
-        $stmt->bind_param("s", $username);
+        $stmt->bind_param("s", $user_name);
         $stmt->execute();
         $data = $stmt->get_result();
         $stmt->close();
@@ -439,22 +459,22 @@ class Authentication {
 
             $subject = "Reset your password at " . Config::fetch('WEBSITE_NAME');
             $handle = fopen(FERNICO_PATH . '/lib/Authentication/PasswordResetEmail.txt', "r");
-            $body = fread($handle, filesize(FERNICO_PATH . '/lib/Authentication/PasswordResetEmail.txt'));
+            $body = stripslashes(fread($handle, filesize(FERNICO_PATH . '/lib/Authentication/PasswordResetEmail.txt')));
             fclose($handle);
             $body = str_replace(array('{$resetLink}', '{$website_name}'),
                 array($resetLink, Config::fetch('WEBSITE_NAME')), $body);
 
-            sendMail($email, $subject, $body);
+            $this->sendMail($email, $subject, $body);
 
-            return true;
+            return 'SUCCESS_RESET_LINK_SENT';
 
         }
 
     }
 
-    public function isValidResetLink() {
+    public function isValidResetLink($reset_hash) {
 
-        $reset_hash = Request::GET("hash", true);
+        global $fernico_db;
 
         $stmt = $fernico_db->stmt_init();
         $stmt->prepare("SELECT COUNT(user_id) as count FROM users WHERE reset_hash = ? AND reset_hash <> '' LIMIT 1");
@@ -466,11 +486,11 @@ class Authentication {
 
         if ($user['count'] > 0.99) {
 
-            return true;
+            return 'IS_VALID_RESET_LINK';
 
         } else {
 
-            return false;
+            return 'IS_NOT_VALID_RESET_LINK';
 
         }
 
@@ -483,6 +503,8 @@ class Authentication {
 
     public function setNewPassword($hash, $password, $password_repeat) {
 
+        global $fernico_db;
+
         $reset_hash = Request::cleanInput($hash);
 
         $stmt = $fernico_db->stmt_init();
@@ -493,20 +515,31 @@ class Authentication {
         $stmt->close();
         $user = $data->fetch_assoc();
 
-        if ($password == $password_repeat && $user['count'] > 0.99) {
+        if ($user['count'] < 0.99) {
+
+            return 'IS_NOT_VALID_RESET_LINK';
+
+        } elseif (strlen($password) < 6) {
+
+            return "ER_PASSWORD_SHORT";
+
+        } elseif (strlen($password) > 64) {
+
+            return "ER_PASSWORD_LONG";
+
+        } elseif ($password != $password_repeat) {
+
+            return "ER_PASSWORD_REPEATING_NOT_MATCHING";
+
+        } else {
 
             $password_hash = password_hash($password, PASSWORD_DEFAULT, array('cost' => 12));
 
             $fernico_db->query("UPDATE users SET password_hash = '{$password_hash}', reset_hash = null WHERE user_id = {$user['user_id']}");
 
-            return true;
-
-        } else {
-
-            return false;
+            return 'PASSWORD_RESET_SUCCESSFUL';
 
         }
-
     }
 
     /*
@@ -515,9 +548,11 @@ class Authentication {
 
     public function resendActivationEmail($user_name) {
 
+        global $fernico_db;
+
         $stmt = $fernico_db->stmt_init();
         $stmt->prepare("SELECT COUNT(user_id) as count,user_id,user_email,activation_hash FROM users WHERE user_name = ? AND user_verified = 0 LIMIT 1");
-        $stmt->bind_param("s", $username);
+        $stmt->bind_param("s", $user_name);
         $stmt->execute();
         $data = $stmt->get_result();
         $stmt->close();
@@ -547,14 +582,14 @@ class Authentication {
             $subject = "Confirm your email at " . Config::fetch('WEBSITE_NAME');
 
             $handle = fopen(FERNICO_PATH . '/lib/Authentication/ActivationEmail.txt', "r");
-            $body = fread($handle, filesize(FERNICO_PATH . '/lib/Authentication/ActivationEmail.txt'));
+            $body = stripslashes(fread($handle, filesize(FERNICO_PATH . '/lib/Authentication/ActivationEmail.txt')));
             fclose($handle);
             $body = str_replace(array('{$activation_link}', '{$website_name}'),
                 array($activation_link, Config::fetch('WEBSITE_NAME')), $body);
 
-            sendMail($email, $subject, $body);
+            $this->sendMail($email, $subject, $body);
 
-            return true;
+            return 'SUCCESS_ACTIVATION_EMAIL_RESENT';
 
         }
 
@@ -567,26 +602,70 @@ class Authentication {
 
     public function changePassword($password, $password_repeat) {
 
-        if ($password == $password_repeat && $this->UserLoggedIn() == true) {
+        global $fernico_db;
 
-            $password_hash = password_hash($password, PASSWORD_DEFAULT, array('cost' => 12));
+        if ($this->UserLoggedIn() == false) {
 
-            $fernico_db->query("UPDATE users SET password_hash = '{$password_hash}' WHERE user_id = {$_SESSION['user_id']}");
+            return "USER_NOT_LOGGED_IN";
 
-            return true;
+        } elseif (strlen($password) < 6) {
+
+            return "ER_PASSWORD_SHORT";
+
+        } elseif (strlen($password) > 64) {
+
+            return "ER_PASSWORD_LONG";
+
+        } elseif ($password != $password_repeat) {
+
+            return "ER_PASSWORD_REPEATING_NOT_MATCHING";
 
         } else {
 
-            return false;
+            $password_hash = password_hash($password, PASSWORD_DEFAULT, array('cost' => 12));
+            $fernico_db->query("UPDATE users SET password_hash = '{$password_hash}' WHERE user_id = {$_SESSION['user_id']}");
+            return 'PASSWORD_SUCCESSFULLY_CHANGED';
 
         }
-
 
     }
 
     /*
      * Is the user logged in? This function lets you know.
      */
+
+    public function AdminPowers() {
+
+        global $fernico_db;
+
+        if ($this->UserLoggedIn() != true) {
+
+            return false;
+
+        } else {
+
+            $stmt = $fernico_db->stmt_init();
+            $stmt->prepare("SELECT COUNT(user_id) as count, admin_powers FROM users WHERE user_id = ? LIMIT 1");
+            $stmt->bind_param("i", $_SESSION['user_id']);
+            $stmt->execute();
+            $data = $stmt->get_result();
+            $stmt->close();
+            $user = $data->fetch_assoc();
+
+            if ($user['admin_powers'] == 1) {
+
+                return true;
+
+            } else {
+
+                return false;
+
+            }
+
+        }
+
+
+    }
 
     public function UserLoggedIn() {
 
@@ -608,6 +687,8 @@ class Authentication {
 
     public function changeEmail($user_email) {
 
+        global $fernico_db;
+
         if ($user_email == "") {
 
             return "ER_EMAIL_BLANK";
@@ -616,7 +697,7 @@ class Authentication {
 
             return "ER_EMAIL_INVALID";
 
-        } elseif ($email == $_SESSION['user_email']) {
+        } elseif ($user_email == $_SESSION['user_email']) {
 
             return "ER_SAME_EMAIL";
 
@@ -627,7 +708,7 @@ class Authentication {
 
             $stmt = $fernico_db->stmt_init();
             $stmt->prepare("UPDATE email_updates SET email = ?, confirm_code = ? WHERE user_id = ?");
-            $stmt->bind_param("ssi", $email, $confirm_code, $_SESSION['user_id']);
+            $stmt->bind_param("ssi", $user_email, $confirm_code, $_SESSION['user_id']);
             $stmt->execute();
             $r = $stmt->affected_row;
             $stmt->close();
@@ -644,14 +725,14 @@ class Authentication {
 
             $subject = "Confirm your email change";
             $handle = fopen(FERNICO_PATH . '/lib/Authentication/EmailChange.txt', "r");
-            $body = fread($handle, filesize(FERNICO_PATH . '/lib/Authentication/EmailChange.txt'));
+            $body = stripslashes(fread($handle, filesize(FERNICO_PATH . '/lib/Authentication/EmailChange.txt')));
             fclose($handle);
             $body = str_replace(array('{$change_link}', '{$website_name}'),
                 array($change_link, Config::fetch('WEBSITE_NAME')), $body);
 
-            sendMail($email, $subject, $body);
+            $this->sendMail($email, $subject, $body);
 
-            return true;
+            return 'SUCCESS_EMAIL_CHANGE_EMAIL_SENT';
 
         }
     }
@@ -661,6 +742,8 @@ class Authentication {
      */
 
     public function confirmEmailChange($hash) {
+
+        global $fernico_db;
 
         $hash = Request::cleanInput($hash);
 
@@ -678,11 +761,11 @@ class Authentication {
 
         } else {
 
-            $_SESSION['user_email'] = $data['email'];
-            $fernico_db->query("UPDATE users SET user_email = '{$data['email']}' WHERE user_id = {$user['user_id']}");
+            $_SESSION['user_email'] = $user['email'];
+            $fernico_db->query("UPDATE users SET user_email = '{$user['email']}' WHERE user_id = {$user['user_id']}");
             $fernico_db->query("DELETE FROM email_updates WHERE id = {$user['id']}");
 
-            return true;
+            return 'SUCCESS_EMAIL_CHANGED';
 
         }
 
@@ -694,7 +777,7 @@ class Authentication {
 
     public function vomitRecaptcha() {
 
-        if (Config::fetch('GOOGLE_RECAPTCHA') == 1) {
+        if (Config::fetch('GOOGLE_RECAPTCHA') === true) {
 
             return "<div id='captcha'></div>
                     <script>
@@ -706,6 +789,10 @@ class Authentication {
                     };
                     </script>                        
                     <script src='https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit' async defer></script>";
+
+        } else {
+
+            return null;
 
         }
 
