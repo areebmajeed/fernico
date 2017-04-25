@@ -19,6 +19,7 @@ class homeIndexController extends AstridController {
 
     public function __construct() {
         require_once(FERNICO_PATH . "/models/Home.php");
+        parent::__construct(); // Generate session. If your class doesn't have a constructer, session is made automatically.
     }
 
     public function home() {
