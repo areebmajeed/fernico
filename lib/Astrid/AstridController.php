@@ -21,12 +21,6 @@ if (!defined('FERNICO')) {
 
 class AstridController extends AstridSession {
 
-    public function __construct() {
-
-        // Just chill. Do nothing.     
-
-    }
-
     /*
      * This function is usually called from the child controller to render a template.
      * Fernico uses Smarty to render templates and to populate them with data.
