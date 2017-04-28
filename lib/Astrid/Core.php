@@ -424,7 +424,7 @@ function fernico_validateIPAddress($ip) {
 
 function fernico_countryCode() {
 
-    $country = filterData($_SERVER["HTTP_CF_IPCOUNTRY"]);
+    $country = Request::cleanInput(@$_SERVER["HTTP_CF_IPCOUNTRY"]);
 
     if ($country == "XX" OR $country == "") {
 
