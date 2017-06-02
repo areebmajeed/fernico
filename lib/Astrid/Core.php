@@ -323,7 +323,11 @@ function fernico_getAbsURL() {
         $scheme = $_SERVER['REQUEST_SCHEME'];
     }
 
-    $url = $scheme . "://" . $_SERVER['HTTP_HOST'] . "/" . $request_uri[0];
+    //echo $request_uri[0];
+
+    $url = $scheme . "://" . $_SERVER['HTTP_HOST'] . "/";
+    //$url = substr( $url, 0, strrpos( $url, "?"));
+
     return $url;
 
 }
