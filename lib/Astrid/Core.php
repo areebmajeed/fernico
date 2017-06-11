@@ -432,13 +432,13 @@ function fernico_countryCode() {
 
     if ($country == "XX" OR $country == "") {
 
-        $country = fetch_content('http://freegeoip.net/json/' . fernico_getIPAddress());
+        $country = fernico_get('http://freegeoip.net/json/' . fernico_getIPAddress());
         $country = json_decode($country, true);
         $country = $country['country_code'];
 
         if ($country == "") {
 
-            $json = fetch_content("http://ipinfo.io/" . fernico_getIPAddress() . "/geo");
+            $json = fernico_get("http://ipinfo.io/" . fernico_getIPAddress() . "/geo");
             $details = json_decode($json, true);
             $country = $details['country'];
 
